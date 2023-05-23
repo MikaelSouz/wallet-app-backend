@@ -108,4 +108,44 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.get("/", async (req, res) => {
+  try {
+    const { date } = req.query;
+    const { email } = req.headers;
+
+    if (!email) {
+      return res.status(400).json({ error: "User is mandatory." });
+    }
+
+    const user = await db.query(usersQueries.findByEmail(email));
+
+    if (!user.rows[0]) {
+      return res.status(400).json({ error: "User does not exist." });
+    }
+
+    if (!date || date.length != 10) {
+      return res.status(400).json({
+        error: "Date is mandatory and should be in the format yyyy-mm-dd.",
+      });
+    }
+
+    const dateObject = new Date(date);
+    const year = dateObject.getFullYear();
+    const month = dateObject.getMonth();
+
+    const initDate = new Date(year, month, 1).toISOString();
+    const finalDate = new Date(year, month + 1, 0).toISOString();
+
+    const text =
+      "SELECT  fn.title, fn.date, fn.value, fn.user_id, fn.category_id, ct.name FROM finances AS fn JOIN categories AS ct ON fn.category_id = ct.id WHERE user_id = $1 AND fn.date BETWEEN $2 AND $3 ORDER BY fn.date ASC";
+    const values = [user.rows[0].id, initDate, finalDate];
+
+    const getResponse = await db.query(text, values);
+
+    return res.status(200).json(getResponse.rows);
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+});
+
 module.exports = router;
