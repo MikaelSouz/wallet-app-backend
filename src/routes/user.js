@@ -3,20 +3,6 @@ const router = express.Router();
 const db = require("../db");
 const usersQueries = require("../queries/users");
 
-router.get("/", (req, res) => {
-  try {
-    db.query("SELECT * FROM users order by id", (error, response) => {
-      if (error) {
-        return res.status(500).json(error);
-      }
-
-      return res.status(200).json(response.rows);
-    });
-  } catch (error) {
-    return res.status(500).json(error);
-  }
-});
-
 router.post("/", async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -48,36 +34,6 @@ router.post("/", async (req, res) => {
     }
 
     return res.status(200).json(createResponse.rows[0]);
-  } catch (error) {
-    return res.status(500).json(error);
-  }
-});
-
-router.delete("/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "Param Id is mandatory" });
-    }
-
-    const query = usersQueries.findOneId(id);
-    const user = await db.query(query);
-
-    if (!user.rows[0]) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const text = "DELETE FROM users where id = $1 RETURNING *";
-    const values = [Number(id)];
-
-    const deleteResponse = await db.query(text, values);
-
-    if (!deleteResponse) {
-      return res.status(400).json({ error: "User not delete" });
-    }
-
-    return res.status(200).json(deleteResponse.rows);
   } catch (error) {
     return res.status(500).json(error);
   }

@@ -3,18 +3,17 @@ const db = require("../db");
 const router = express.Router();
 const categoriesQueries = require("../queries/categories");
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    db.query(
-      "SELECT * FROM categories ORDER BY name ASC",
-      (error, response) => {
-        if (error) {
-          return res.status(500).json(error);
-        }
-
-        return res.status(200).json(response.rows);
-      }
+    const categories = await db.query(
+      "SELECT * FROM categories ORDER BY name ASC"
     );
+
+    if (!categories.rows) {
+      return res.status(500).json(error);
+    }
+
+    return res.status(200).json(categories.rows);
   } catch (error) {
     return res.status(500).json(error);
   }
