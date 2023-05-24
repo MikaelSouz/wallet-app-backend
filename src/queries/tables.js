@@ -1,4 +1,11 @@
 const createTablesQueries = {
+  createDatabase: () => {
+    return {
+      name: "create-database",
+      text: "CREATE DATABASE finances",
+    };
+  },
+
   createUsers: () => {
     return {
       name: "create-users",
